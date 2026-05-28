@@ -1,0 +1,409 @@
+/**
+ * Estilos para el Buscador de Libros
+ * 
+ * @author Pablo
+ * @version 1.0
+ */
+
+/* ===== RESET Y BASE ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --primary-color: #667eea;
+    --primary-dark: #5a67d8;
+    --secondary-color: #764ba2;
+    --accent-color: #f093fb;
+    --text-dark: #2d3748;
+    --text-light: #718096;
+    --bg-light: #f7fafc;
+    --bg-white: #ffffff;
+    --border-color: #e2e8f0;
+    --success-color: #48bb78;
+    --error-color: #fc8181;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-light) 0%, #edf2f7 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+/* ===== CABECERA ===== */
+header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    animation: pulse 15s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.header-content i {
+    font-size: 2.5rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+main {
+    flex: 1;
+    max-width: 1000px;
+    width: 95%;
+    margin: -30px auto 40px;
+    position: relative;
+    z-index: 10;
+}
+
+/* ===== BUSCADOR ===== */
+.search-container {
+    background: var(--bg-white);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 25px;
+}
+
+#formBusqueda {
+    margin: 0;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 20px;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 18px 20px 18px 55px;
+    font-size: 1.1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: all 0.3s ease;
+    background: var(--bg-light);
+}
+
+input[type="text"]:focus {
+    border-color: var(--primary-color);
+    background: var(--bg-white);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+input[type="text"]:focus + .input-wrapper i,
+.input-wrapper:focus-within i {
+    color: var(--primary-color);
+}
+
+input[type="text"]::placeholder {
+    color: var(--text-light);
+}
+
+/* ===== ERROR MESSAGE ===== */
+.error-message {
+    color: var(--error-color);
+    font-size: 0.9rem;
+    margin-top: 10px;
+    padding: 0 10px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.error-message.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ===== RESULTADOS ===== */
+.results-container {
+    background: var(--bg-white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    min-height: 200px;
+}
+
+/* ===== CONTADOR DE RESULTADOS ===== */
+.contador {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--primary-color);
+    display: none;
+}
+
+.contador:not(:empty) {
+    display: block;
+}
+
+.contador i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+.contador strong {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* ===== MENSAJE DE CARGA ===== */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.loading i {
+    font-size: 2rem;
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 15px;
+}
+
+/* ===== MENSAJE SIN RESULTADOS ===== */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+}
+
+.no-results i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.no-results p {
+    font-size: 1.2rem;
+}
+
+/* ===== MENSAJE DE ERROR API ===== */
+.error-api {
+    text-align: center;
+    padding: 40px;
+    color: var(--error-color);
+    background: #fff5f5;
+    border-radius: var(--radius-sm);
+    border: 1px solid #feb2b2;
+}
+
+/* ===== TABLA DE LIBROS ===== */
+.results-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.results-table thead {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.results-table th {
+    color: white;
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.results-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.results-table tbody tr {
+    background: var(--bg-white);
+    transition: all 0.3s ease;
+}
+
+.results-table tbody tr:hover {
+    background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+    transform: scale(1.01);
+    box-shadow: var(--shadow-sm);
+}
+
+.results-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ===== ICONOS DE LA TABLA ===== */
+.icon-book, .icon-author, .icon-flag, .icon-date {
+    margin-right: 10px;
+    width: 18px;
+    text-align: center;
+}
+
+.icon-book { color: #667eea; }
+.icon-author { color: #ed8936; }
+.icon-flag { color: #48bb78; }
+.icon-date { color: #9f7aea; }
+
+/* ===== ANIMACIONES ===== */
+.fade-in {
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== PIE DE PÁGINA ===== */
+footer {
+    text-align: center;
+    padding: 25px;
+    background: var(--text-dark);
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+footer i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+footer p {
+    margin: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .header-content i {
+        font-size: 1.8rem;
+    }
+    
+    .subtitle {
+        font-size: 0.95rem;
+    }
+    
+    main {
+        margin-top: -20px;
+    }
+    
+    .search-container,
+    .results-container {
+        padding: 20px;
+        border-radius: var(--radius-md);
+    }
+    
+    input[type="text"] {
+        padding: 15px 15px 15px 45px;
+        font-size: 1rem;
+    }
+    
+    .results-table th,
+    .results-table td {
+        padding: 12px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .results-table th:nth-child(4),
+    .results-table td:nth-child(4) {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        padding: 30px 15px;
+    }
+    
+    header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .results-table th:nth-child(3),
+    .results-table td:nth-child(3) {
+        display: none;
+    }
+}
