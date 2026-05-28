@@ -18,13 +18,75 @@ require_once __DIR__ . '/clases/Libros.php';
 header("Content-Type: application/json; charset=utf-8");
 
 /**
+ * Extrae el nombre y apellido del autor desde el string completo.
+ *
+ * @param string $nombreCompleto Nombre completo del autor (ej: "J.R.R. Tolkien").
+ * @return array Array con 'nombre' y 'apellidos'.
+ */
+function separarNombreApellido(string $nombreCompleto): array {
+    $nombreCompleto = trim($nombreCompleto);
+    
+    if (empty($nombreCompleto)) {
+        return ['nombre' => 'Desconocido', 'apellidos' => ''];
+    }
+    
+    // Dividir por espacios
+    $partes = explode(' ', $nombreCompleto);
+    
+    if (count($partes) === 1) {
+        // Si solo hay una palabra, es el nombre
+        return ['nombre' => $partes[0], 'apellidos' => ''];
+    }
+    
+    // El último elemento es el apellido, el resto es el nombre
+    $apellidos = array_pop($partes);
+    $nombre = implode(' ', $partes);
+    
+    return ['nombre' => $nombre, 'apellidos' => $apellidos];
+}
+
+/**
+ * Valida si un string parece ser un nombre de autor válido.
+ *
+ * Evita editoriales, compiladores, etc. que no sean autores reales.
+ *
+ * @param string $autor Nombre a validar.
+ * @return bool true si parece un autor válido.
+ */
+function esAutorValido(string $autor): bool {
+    $autor = strtolower(trim($autor));
+    
+    // Palabras que indican que no es un autor real
+    $palabrasExcluidas = ['editor', 'compiler', 'contributor', 'translator', 
+                          'illustrated by', 'ilustrado por', 'editorial', 
+                          'publisher', 'editor in chief', 'general editor'];
+    
+    foreach ($palabrasExcluidas as $palabra) {
+        if (stripos($autor, $palabra) !== false) {
+            return false;
+        }
+    }
+    
+    // Excluir si es muy corto o parece un nombre de editorial
+    if (strlen($autor) < 3 || preg_match('/^[A-Z\s&]+$/', $autor)) {
+        return false;
+    }
+    
+    return true;
+}
+
+/**
  * Realiza una búsqueda en la API de Open Library y formatea los resultados.
  *
+ * Busca libros por título, extrae el autor principal y evita duplicados
+ * o datos incorrectos. Los resultados se formatean para compatibilidad
+ * con la interfaz existente.
+ *
  * @param string $query Término de búsqueda.
- * @param int $limit Número máximo de resultados.
+ * @param int $limit Número máximo de resultados a procesar.
  * @return array Resultados formateados o array con clave 'error'.
  */
-function buscarEnOpenLibrary(string $query, int $limit = 20): array {
+function buscarEnOpenLibrary(string $query, int $limit = 30): array {
     $url = "https://openlibrary.org/search.json?title=" . urlencode($query) . "&limit=" . $limit;
 
     $ch = curl_init();
@@ -48,17 +110,55 @@ function buscarEnOpenLibrary(string $query, int $limit = 20): array {
         return ["error" => "Error al procesar los datos"];
     }
 
-    // Formatear los resultados para que coincidan con la estructura de la BD local
+    // Formatear y filtrar los resultados
     $resultados = [];
+    $titulosVistos = [];
+    
     if (!empty($datos['docs'])) {
         foreach ($datos['docs'] as $libro) {
+            $titulo = trim($libro['title'] ?? 'Sin título');
+            
+            // Evitar duplicados de títulos
+            if (isset($titulosVistos[$titulo])) {
+                continue;
+            }
+            $titulosVistos[$titulo] = true;
+            
+            // Extraer autor válido
+            $autor = 'Desconocido';
+            $nombre = 'Desconocido';
+            $apellidos = '';
+            
+            if (!empty($libro['author_name']) && is_array($libro['author_name'])) {
+                // Buscar el primer autor válido
+                foreach ($libro['author_name'] as $autorName) {
+                    if (esAutorValido($autorName)) {
+                        $autor = $autorName;
+                        $partes = separarNombreApellido($autor);
+                        $nombre = $partes['nombre'];
+                        $apellidos = $partes['apellidos'];
+                        break;
+                    }
+                }
+            }
+            
+            // Obtener año de publicación
+            $anio = !empty($libro['first_publish_year']) 
+                    ? $libro['first_publish_year'] . "-01-01" 
+                    : null;
+            
             $resultados[] = [
-                "titulo" => $libro['title'] ?? 'Sin título',
-                "nombre" => !empty($libro['author_name']) ? $libro['author_name'][0] : 'Desconocido',
-                "apellidos" => '',
-                "nacionalidad" => 'Internacional',
-                "f_publicacion" => !empty($libro['first_publish_year']) ? $libro['first_publish_year'] . "-01-01" : null
+                "titulo" => $titulo,
+                "nombre" => $nombre,
+                "apellidos" => $apellidos,
+                "nacionalidad" => "Internacional",
+                "f_publicacion" => $anio
             ];
+            
+            // Limitar a 10 resultados válidos
+            if (count($resultados) >= 10) {
+                break;
+            }
         }
     }
 
