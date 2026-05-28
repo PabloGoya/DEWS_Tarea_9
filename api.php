@@ -1,6 +1,29 @@
 <?php
+/**
+ * API simple para búsquedas de libros usando Open Library.
+ *
+ * Este archivo expone una acción `buscar` que acepta el parámetro `q`
+ * y devuelve un listado JSON con resultados formateados. Se opta por
+ * simplicidad: peticiones GET y `file_get_contents` para obtener datos
+ * de la API pública.
+ *
+ * Hecho por: Pablo (ajustes ligeros de documentación)
+ * @version 1.0
+ */
+
 header("Content-Type: application/json; charset=utf-8");
 
+/**
+ * Realiza la búsqueda en Open Library y devuelve resultados formateados.
+ *
+ * - Detecta automáticamente si la consulta es numérica (año) y usa
+ *   el parámetro apropiado.
+ * - Si no es numérica realiza una búsqueda general (`q`) que cubre
+ *   título y autor.
+ *
+ * @param string $query Término de búsqueda ingresado por la persona usuaria.
+ * @return array Lista de resultados o array con clave 'error' en caso de fallo.
+ */
 function buscar($query) {
     if (empty($query)) {
         return [];

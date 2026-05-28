@@ -40,6 +40,7 @@ function buscarLibrosOpenLibrary(string $query, int $limit = 10): array {
     $datos = json_decode($respuesta, true);
 
     if (json_last_error() !== JSON_ERROR_NONE) {
+        // Respuesta inválida JSON
         return ["error" => "Error al procesar la respuesta de la API"];
     }
 
