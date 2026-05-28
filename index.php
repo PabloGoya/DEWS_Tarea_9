@@ -38,11 +38,16 @@
                     type="text" 
                     id="texto" 
                     placeholder="Escribe para buscar..." 
-                    pattern="[A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]+"
-                    title="Solo se permiten letras y espacios"
+                    pattern="[A-Za-záéíóúÁÉÍÓÚñÑüÜ\s0-9]+"
+                    title="Solo se permiten letras, números y espacios"
                     autocomplete="off"
                 >
             </div>
+            <select id="tipoBusqueda" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                <option value="title">Por Título</option>
+                <option value="author">Por Autor</option>
+                <option value="year">Por Año</option>
+            </select>
             <div id="error" class="error-message"></div>
         </form>
     </div>

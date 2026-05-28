@@ -1,12 +1,29 @@
 <?php
 header("Content-Type: application/json; charset=utf-8");
 
-function buscar($query) {
+function buscar($query, $tipo = "title") {
     if (empty($query)) {
         return [];
     }
 
-    $url = "https://openlibrary.org/search.json?title=" . urlencode($query) . "&limit=20";
+    // Construir URL según el tipo de búsqueda
+    $url = "https://openlibrary.org/search.json?";
+    
+    switch($tipo) {
+        case "author":
+            $url .= "author=" . urlencode($query);
+            break;
+        case "title":
+            $url .= "title=" . urlencode($query);
+            break;
+        case "year":
+            $url .= "first_publish_year=" . urlencode($query);
+            break;
+        default:
+            $url .= "title=" . urlencode($query);
+    }
+    
+    $url .= "&limit=20";
     
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -54,7 +71,9 @@ function buscar($query) {
 $accion = $_GET["action"] ?? "";
 
 if ($accion === "buscar") {
-    echo json_encode(buscar($_GET["q"] ?? ""));
+    $q = $_GET["q"] ?? "";
+    $tipo = $_GET["tipo"] ?? "title";  // title, author, year
+    echo json_encode(buscar($q, $tipo));
 } else {
     echo json_encode(["error" => "Acción no válida"]);
 }

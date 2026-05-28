@@ -9,42 +9,34 @@
  */
 
 const campoTexto = document.getElementById("texto");
+const tipoBusqueda = document.getElementById("tipoBusqueda");
 const contenedorResultados = document.getElementById("resultados");
 const mensajeError = document.getElementById("error");
 const contadorResultados = document.getElementById("contador");
 
 let temporizador = null;
 
-/**
- * Valida el texto introducido en el buscador.
- *
- * Solo permite letras y espacios para evitar caracteres no deseados
- * antes de enviar la búsqueda al servidor.
- *
- * @param string $texto Texto que escribe la persona usuaria.
- * @return bool true si el texto solo contiene letras y espacios, false en caso contrario.
- */
-function validarSoloLetras(texto) {
-    const patron = /^[A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]*$/;
-    return patron.test(texto);
+function validarTexto(texto, tipo) {
+    if (tipo === "year") {
+        return /^\d+$/.test(texto);
+    }
+    return /^[A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]*$/.test(texto);
 }
 
-/**
- * Filtra el texto del campo de búsqueda mientras se escribe.
- *
- * Elimina al vuelo los caracteres no permitidos y, si ha tenido que corregir
- * algo, muestra un pequeño mensaje de ayuda al usuario.
- *
- * @param Event $e Evento de entrada (input) del campo de texto.
- * @return void
- */
 function filtrarTexto(e) {
     const valor = e.target.value;
-    const valorFiltrado = valor.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+    const tipo = tipoBusqueda.value;
+    let valorFiltrado;
+    
+    if (tipo === "year") {
+        valorFiltrado = valor.replace(/[^\d]/g, '');
+    } else {
+        valorFiltrado = valor.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+    }
     
     if (valor !== valorFiltrado) {
         e.target.value = valorFiltrado;
-        mensajeError.textContent = "Solo se permiten letras y espacios";
+        mensajeError.textContent = tipo === "year" ? "Solo números" : "Solo letras y espacios";
         mensajeError.classList.add("visible");
         setTimeout(() => {
             mensajeError.classList.remove("visible");
@@ -53,19 +45,17 @@ function filtrarTexto(e) {
     }
 }
 
-// Filtrar caracteres no permitidos mientras se escribe
 campoTexto.addEventListener("input", filtrarTexto);
 
-// Lanzar la búsqueda con retardo (tecleo)
 campoTexto.addEventListener("keyup", () => {
     clearTimeout(temporizador);
 
     temporizador = setTimeout(() => {
         const texto = campoTexto.value.trim();
+        const tipo = tipoBusqueda.value;
 
-        // Validación adicional antes de llamar a la API
-        if (!validarSoloLetras(texto)) {
-            mensajeError.textContent = "Solo se permiten letras y espacios";
+        if (!validarTexto(texto, tipo)) {
+            mensajeError.textContent = tipo === "year" ? "Solo se permiten números" : "Solo se permiten letras y espacios";
             mensajeError.classList.add("visible");
             return;
         }
@@ -89,15 +79,14 @@ campoTexto.addEventListener("keyup", () => {
         mensajeError.textContent = "";
         mensajeError.classList.remove("visible");
 
-        // Mostrar indicador de carga
         contenedorResultados.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>';
 
-        fetch(`api.php?action=buscar&q=${encodeURIComponent(texto)}`)
+        fetch(`api.php?action=buscar&q=${encodeURIComponent(texto)}&tipo=${tipo}`)
             .then(res => res.json())
             .then(datos => {
-                // Si la API devuelve un mensaje de error (por ejemplo, fallo de conexión)
                 if (datos && datos.error) {
                     contenedorResultados.innerHTML = `<div class="error-api">${escaparHtml(datos.error)}</div>`;
+
                     contadorResultados.textContent = "";
                     return;
                 }
