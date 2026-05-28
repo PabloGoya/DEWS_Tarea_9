@@ -9,60 +9,19 @@
  */
 
 const campoTexto = document.getElementById("texto");
-const tipoBusqueda = document.getElementById("tipoBusqueda");
 const contenedorResultados = document.getElementById("resultados");
 const mensajeError = document.getElementById("error");
 const contadorResultados = document.getElementById("contador");
 
 let temporizador = null;
 
-function validarTexto(texto, tipo) {
-    if (tipo === "year") {
-        return /^\d+$/.test(texto);
-    }
-    return /^[A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]*$/.test(texto);
-}
-
-function filtrarTexto(e) {
-    const valor = e.target.value;
-    const tipo = tipoBusqueda.value;
-    let valorFiltrado;
-    
-    if (tipo === "year") {
-        valorFiltrado = valor.replace(/[^\d]/g, '');
-    } else {
-        valorFiltrado = valor.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
-    }
-    
-    if (valor !== valorFiltrado) {
-        e.target.value = valorFiltrado;
-        mensajeError.textContent = tipo === "year" ? "Solo números" : "Solo letras y espacios";
-        mensajeError.classList.add("visible");
-        setTimeout(() => {
-            mensajeError.classList.remove("visible");
-            mensajeError.textContent = "";
-        }, 2000);
-    }
-}
-
-campoTexto.addEventListener("input", filtrarTexto);
-
 campoTexto.addEventListener("keyup", () => {
     clearTimeout(temporizador);
 
     temporizador = setTimeout(() => {
         const texto = campoTexto.value.trim();
-        const tipo = tipoBusqueda.value;
-
-        if (!validarTexto(texto, tipo)) {
-            mensajeError.textContent = tipo === "year" ? "Solo se permiten números" : "Solo se permiten letras y espacios";
-            mensajeError.classList.add("visible");
-            return;
-        }
 
         if (texto.length === 0) {
-            mensajeError.textContent = "";
-            mensajeError.classList.remove("visible");
             contenedorResultados.innerHTML = "";
             contadorResultados.textContent = "";
             return;
@@ -81,11 +40,12 @@ campoTexto.addEventListener("keyup", () => {
 
         contenedorResultados.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>';
 
-        fetch(`api.php?action=buscar&q=${encodeURIComponent(texto)}&tipo=${tipo}`)
+        fetch(`api.php?action=buscar&q=${encodeURIComponent(texto)}`)
             .then(res => res.json())
             .then(datos => {
                 if (datos && datos.error) {
                     contenedorResultados.innerHTML = `<div class="error-api">${escaparHtml(datos.error)}</div>`;
+
 
                     contadorResultados.textContent = "";
                     return;

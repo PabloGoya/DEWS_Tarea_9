@@ -1,28 +1,23 @@
 <?php
 header("Content-Type: application/json; charset=utf-8");
 
-function buscar($query, $tipo = "title") {
+function buscar($query) {
     if (empty($query)) {
         return [];
     }
 
-    // Construir URL según el tipo de búsqueda
+    // Detectar el tipo de búsqueda automáticamente
+    $esNumero = is_numeric(trim($query));
+    $tipo = $esNumero ? "first_publish_year" : "title";
+    
+    // Si no es número, intentar buscar por autor también
     $url = "https://openlibrary.org/search.json?";
-    
-    switch($tipo) {
-        case "author":
-            $url .= "author=" . urlencode($query);
-            break;
-        case "title":
-            $url .= "title=" . urlencode($query);
-            break;
-        case "year":
-            $url .= "first_publish_year=" . urlencode($query);
-            break;
-        default:
-            $url .= "title=" . urlencode($query);
+    if ($esNumero) {
+        $url .= "first_publish_year=" . urlencode($query);
+    } else {
+        // Combinar búsqueda por título y autor
+        $url .= "q=" . urlencode($query);
     }
-    
     $url .= "&limit=20";
     
     $ch = curl_init();
@@ -51,7 +46,6 @@ function buscar($query, $tipo = "title") {
         $autor = isset($libro['author_name'][0]) ? $libro['author_name'][0] : 'Desconocido';
         $anio = $libro['first_publish_year'] ?? null;
         
-        // Separar nombre y apellido
         $partes = array_reverse(explode(' ', trim($autor)));
         $apellidos = array_shift($partes) ?? '';
         $nombre = implode(' ', array_reverse($partes)) ?: $autor;
@@ -71,9 +65,7 @@ function buscar($query, $tipo = "title") {
 $accion = $_GET["action"] ?? "";
 
 if ($accion === "buscar") {
-    $q = $_GET["q"] ?? "";
-    $tipo = $_GET["tipo"] ?? "title";  // title, author, year
-    echo json_encode(buscar($q, $tipo));
+    echo json_encode(buscar($_GET["q"] ?? ""));
 } else {
     echo json_encode(["error" => "Acción no válida"]);
 }
